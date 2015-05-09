@@ -7,8 +7,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 
-int main(int argc, char *argv[])
-{
+void PruebaMMap(){
     int fd, offset;
     char *data;
     struct stat sbuf;
@@ -38,5 +37,10 @@ int main(int argc, char *argv[])
     }
 
     printf("Imprimo lo que se encuentra dentro del archivo: %s", data);
+}
+
+int main(int argc, char *argv[])
+{
+	PruebaMMap();
     return 0;
 }
