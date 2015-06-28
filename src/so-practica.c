@@ -20,6 +20,12 @@
 #define MYPORT "7777"  // the port users will be connecting to
 #define BACKLOG 10     // how many pending connections queue will hold
 
+struct Registration
+{
+char multicastGroup[24];
+pid_t clientPid;
+};
+
 void PruebaMMap(){
 
     int fd, offset;
@@ -230,10 +236,24 @@ void PruebaCliente()
 		buffer[i] = '\0';
 	}
 
+	struct Registration regn ;
+	regn.clientPid = getpid();
+	strcpy(regn.multicastGroup, "226.1.1.1");
+
+	printf("PID:%d\n", regn.clientPid);
+	printf("MG:%s\n", regn.multicastGroup);
+	printf("Size:%d\n", sizeof(regn));           //Size is 28
+
+	char* data;
+	data = (unsigned char*)malloc(sizeof(regn));
+	memcpy(data, &regn, sizeof(regn));
+	printf("Size:%d\n", sizeof(data));
+
 	memcpy(buffer, "holitas", 8);
 
 	printf("Llego a mandar el socket");
-	sendall(sockfd, buffer, size);
+	//sendall(sockfd, buffer, size);
+	sendall(sockfd, data, sizeof(data));
 }
 
 void PruebaServidor()
@@ -271,10 +291,24 @@ void PruebaServidor()
     unsigned int size = 1024;
     char* buff = malloc( size);
 
-    long long n;
-    while( (n = recv(new_fd, buff,  size, 0))  > 0 ){
-        printf("%lld\n", n);
-        puts(buff);
+//    long long n;
+//    while( (n = recv(new_fd, buff,  size, 0))  > 0 ){
+//        printf("%lld\n", n);
+//        puts(buff);
+//    }
+	struct Registration regn ;
+
+    if(recvfrom(new_fd, buff, size, 0, (struct sockaddr*)&their_addr, &addr_size) < 0)
+    {
+           printf("Error receiving message from client\n");
+    }
+    else
+    {
+           printf("Message received:%s\n", buff);
+           printf("Size :%d\n", strlen(buff));
+           memcpy(&regn, buff, sizeof(regn));
+           printf("PID:%d\n", regn.clientPid);
+           printf("MG:%s\n", regn.multicastGroup);
     }
 }
 
@@ -284,6 +318,6 @@ int main(int argc, char *argv[])
 	//PruebaMongoDB();
 	//PruebaSocket();
 	//PruebaCliente();
-	//PruebaServidor();
+	PruebaServidor();
     return 0;
 }
