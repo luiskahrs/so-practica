@@ -17,6 +17,9 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 
+#define MYPORT "7777"  // the port users will be connecting to
+#define BACKLOG 10     // how many pending connections queue will hold
+
 void PruebaMMap(){
 
     int fd, offset;
@@ -198,7 +201,8 @@ void sendall( int descriptorSocket, const char* buffer, const unsigned int bytes
 	}
 }
 
-int main(int argc, char **argv) {
+void PruebaCliente()
+{
 	printf("Inicia main de un socket\n");
 	struct addrinfo hints, *res;
 	int sockfd;
@@ -230,13 +234,56 @@ int main(int argc, char **argv) {
 
 	printf("Llego a mandar el socket");
 	sendall(sockfd, buffer, size);
-	return 0;
 }
 
-//int main(int argc, char *argv[])
-//{
-//	//PruebaMMap();
-//	//PruebaMongoDB();
-//	PruebaSocket();
-//    return 0;
-//}
+void PruebaServidor()
+{
+    struct sockaddr_storage their_addr;
+    socklen_t addr_size;
+    struct addrinfo hints, *res;
+    int sockfd, new_fd;
+
+    // !! don't forget your error checking for these calls !!
+
+    // first, load up address structs with getaddrinfo():
+
+    memset(&hints, 0, sizeof hints);
+    hints.ai_family = AF_UNSPEC;  // use IPv4 or IPv6, whichever
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;     // fill in my IP for me
+
+    getaddrinfo(NULL, MYPORT, &hints, &res);
+
+    // make a socket, bind it, and listen on it:
+
+    sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    bind(sockfd, res->ai_addr, res->ai_addrlen);
+    listen(sockfd, BACKLOG);
+
+    // now accept an incoming connection:
+
+    addr_size = sizeof their_addr;
+
+    printf("Llego a esperar la conexión\n");
+    new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size);
+    puts("ieie");
+    // ready to communicate on socket descriptor new_fd!
+    unsigned int size = 1024;
+    char* buff = malloc( size);
+
+    long long n;
+    while( (n = recv(new_fd, buff,  size, 0))  > 0 ){
+        printf("%lld\n", n);
+        puts(buff);
+    }
+}
+
+int main(int argc, char *argv[])
+{
+	//PruebaMMap();
+	//PruebaMongoDB();
+	//PruebaSocket();
+	//PruebaCliente();
+	//PruebaServidor();
+    return 0;
+}
