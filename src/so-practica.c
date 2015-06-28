@@ -130,6 +130,7 @@ int PruebaSocket(){
 	memset(&client, 0, sizeof(client));
 	socklen_t len = sizeof(client);
 	int temp_sock_desc = accept(sock_desc, (struct sockaddr*)&client, &len);
+
 	if (temp_sock_desc == -1)
 	{
 		printf("cannot accept client!\n");
@@ -145,13 +146,13 @@ int PruebaSocket(){
 		printf("Trato de leer...\n");
 
 		k = recv(temp_sock_desc, buf, 100, 0);
-		if (recv == -1)
+		if (k == -1)
 		{
 			printf("\ncannot read from client!\n");
 			break;
 		}
 
-		if (recv == 0)
+		if (k == 0)
 		{
 			printf("\nclient disconnected.\n");
 			break;
@@ -159,6 +160,13 @@ int PruebaSocket(){
 
 		if (k > 0)
 			printf("%*.*s", k, k, buf);
+
+		// remuevo el \n que me deja la lectura
+		size_t ln = strlen(buf) - 1;
+		if (buf[ln] == '\n')
+			buf[ln] = '\0';
+
+		printf("Esto es lo que hay en el buffer %s\n", buf);
 
 		if (strcmp(buf, "exit") == 0)
 			break;
@@ -170,10 +178,48 @@ int PruebaSocket(){
 	printf("server disconnected\n");
 	return 0;
 }
-int main(int argc, char *argv[])
-{
-	//PruebaMMap();
-	//PruebaMongoDB();
-	PruebaSocket();
-    return 0;
+
+void sendall( int descriptorSocket, const char* buffer, const unsigned int bytesPorEnviar){
+	int retorno;
+	int bytesEnviados = 0;
+
+	while (bytesEnviados < (int)bytesPorEnviar) {
+	   retorno = send(descriptorSocket, (char*)(buffer+bytesEnviados), bytesPorEnviar-bytesEnviados, 0);
+
+	   //Controlo Errores
+	   if( retorno <= 0 ) {
+		  printf("Error al enviar Datos (se corto el Paquete Enviado), solo se enviaron %d bytes de los %d bytes totales por enviar\n", bytesEnviados, (int)bytesPorEnviar);
+		  perror("El Error Detectado es: ");
+		  bytesEnviados = retorno;
+		  break;
+	   }
+	   //Si no hay problemas, sigo acumulando bytesEnviados
+	   bytesEnviados += retorno;
+	}
 }
+
+int main(int argc, char **argv) {
+	struct addrinfo hints, *res;
+	int sockfd;
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+
+	getaddrinfo("192.168.1.112", "7777", &hints, &res);
+	sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+
+	connect(sockfd, res->ai_addr, res->ai_addrlen);
+	unsigned int sise = 1073741824; //Maximo
+	char* buffer = malloc(sise);
+	memcpy( buffer+7742, "holitas", 8);
+	sendall(sockfd, buffer, sise);
+	return 0;
+}
+
+//int main(int argc, char *argv[])
+//{
+//	//PruebaMMap();
+//	//PruebaMongoDB();
+//	PruebaSocket();
+//    return 0;
+//}
