@@ -245,7 +245,7 @@ void PruebaCliente()
 	printf("Size:%d\n", sizeof(regn));           //Size is 28
 
 	char* data;
-	data = (unsigned char*)malloc(sizeof(struct Registration));
+	data = (unsigned char*)malloc(sizeof(regn));
 	memcpy(data, &regn, sizeof(regn));
 	printf("Size:%d\n", sizeof(data));
 
@@ -253,7 +253,7 @@ void PruebaCliente()
 
 	printf("Llego a mandar el socket");
 	//sendall(sockfd, buffer, size);
-	sendall(sockfd, data, sizeof(data));
+	sendall(sockfd, data, sizeof(regn));
 }
 
 void PruebaServidor()
@@ -289,16 +289,16 @@ void PruebaServidor()
     puts("ieie");
     // ready to communicate on socket descriptor new_fd!
     unsigned int size = 1024;
-    char* buff = malloc( sizeof(struct Registration));
+    char* buff = malloc( size);
 
 //    long long n;
 //    while( (n = recv(new_fd, buff,  size, 0))  > 0 ){
 //        printf("%lld\n", n);
 //        puts(buff);
 //    }
-	struct Registration regn;
+	struct Registration regn ;
 
-    if(recvfrom(new_fd, buff, sizeof(struct Registration), 0, (struct sockaddr*)&their_addr, &addr_size) < 0)
+    if(recvfrom(new_fd, buff, size, 0, (struct sockaddr*)&their_addr, &addr_size) < 0)
     {
            printf("Error receiving message from client\n");
     }
