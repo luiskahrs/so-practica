@@ -199,20 +199,37 @@ void sendall( int descriptorSocket, const char* buffer, const unsigned int bytes
 }
 
 int main(int argc, char **argv) {
+	printf("Inicia main de un socket\n");
 	struct addrinfo hints, *res;
 	int sockfd;
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
+	printf("Busca info del socket\n");
 	getaddrinfo("192.168.1.112", "7777", &hints, &res);
+
+	printf("Obtenida info del socket\n");
+
 	sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
 
+	printf("Arme la estructura del socket\n");
+
 	connect(sockfd, res->ai_addr, res->ai_addrlen);
-	unsigned int sise = 1073741824; //Maximo
-	char* buffer = malloc(sise);
-	memcpy( buffer+7742, "holitas", 8);
-	sendall(sockfd, buffer, sise);
+	printf("Me conecte\n");
+	unsigned int size = 1024; //Maximo
+	char* buffer = malloc(size);
+	int i;
+	// Limpio el buffer cada vez que voy a leer
+	for (i = 0; i < 1024; i++)
+	{
+		buffer[i] = '\0';
+	}
+
+	memcpy(buffer, "holitas", 8);
+
+	printf("Llego a mandar el socket");
+	sendall(sockfd, buffer, size);
 	return 0;
 }
 
