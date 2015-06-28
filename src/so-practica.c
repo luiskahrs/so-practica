@@ -22,8 +22,8 @@
 
 struct Registration
 {
-char multicastGroup[24];
-pid_t clientPid;
+	char multicastGroup[24];
+	pid_t clientPid;
 };
 
 void PruebaMMap(){
@@ -249,10 +249,7 @@ void PruebaCliente()
 	memcpy(data, &regn, sizeof(regn));
 	printf("Size:%d\n", sizeof(data));
 
-	memcpy(buffer, "holitas", 8);
-
 	printf("Llego a mandar el socket");
-	//sendall(sockfd, buffer, size);
 	sendall(sockfd, data, sizeof(regn));
 }
 
