@@ -11,11 +11,8 @@
 #include <errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <arpa/inet.h>
-#include <unistd.h>
 
 #define MYPORT "7777"  // the port users will be connecting to
 #define BACKLOG 10     // how many pending connections queue will hold
@@ -31,6 +28,8 @@ void PruebaMMap(){
     int fd, offset;
     char *data;
     struct stat sbuf;
+    div_t cantBloques;
+    int tamBloque=1024*1024*20;
 
     if ((fd = open("/home/utnso/workspace/so-practica/inputejemplo", O_RDONLY)) == -1) {
     	printf("%s", get_current_dir_name());
@@ -44,17 +43,26 @@ void PruebaMMap(){
     }
 
     offset = 0;
+    printf("El tamaño del archivo es %i\n", (int) sbuf.st_size);
     if (offset < 0 || offset > sbuf.st_size-1) {
         fprintf(stderr, "mmapdemo: offset must be in the range 0-%d\n", sbuf.st_size-1);
         exit(1);
     }
 
-    data = mmap((caddr_t)0, sbuf.st_size, PROT_READ, MAP_SHARED, fd, 0);
+    // el ultimo parametro es el desplazamiento
+    data = mmap((caddr_t)0, tamBloque, PROT_READ, MAP_SHARED, fd, 0);
 
     if (data == (caddr_t)(-1)) {
         perror("mmap");
         exit(1);
     }
+
+    cantBloques = div((int)sbuf.st_size, tamBloque);
+
+    if (cantBloques.rem >0) {
+    cantBloques.quot++;
+    }
+    printf("%d\n",  cantBloques.quot);
 
     printf("Imprimo lo que se encuentra dentro del archivo: %s", data);
 }
@@ -311,10 +319,10 @@ void PruebaServidor()
 
 int main(int argc, char *argv[])
 {
-	//PruebaMMap();
+	PruebaMMap();
 	//PruebaMongoDB();
 	//PruebaSocket();
 	//PruebaCliente();
-	PruebaServidor();
+	//PruebaServidor();
     return 0;
 }
