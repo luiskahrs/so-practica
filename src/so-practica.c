@@ -23,6 +23,13 @@ struct Registration
 	pid_t clientPid;
 };
 
+typedef struct {
+	pid_t clientPid;
+	char cliente[5];
+	char metodo[20];
+	char message[24];
+} t_llamada;
+
 void PruebaMMap(){
 
     int fd, offset;
@@ -225,7 +232,7 @@ void PruebaCliente()
 	hints.ai_socktype = SOCK_STREAM;
 
 	printf("Busca info del socket\n");
-	getaddrinfo("192.168.1.112", "7777", &hints, &res);
+	getaddrinfo("192.168.1.104", "7777", &hints, &res);
 
 	printf("Obtenida info del socket\n");
 
@@ -246,7 +253,7 @@ void PruebaCliente()
 
 	struct Registration regn ;
 	regn.clientPid = getpid();
-	strcpy(regn.multicastGroup, "226.1.1.1");
+	strcpy(regn.multicastGroup, "Hola Victor!!!");
 
 	printf("PID:%d\n", regn.clientPid);
 	printf("MG:%s\n", regn.multicastGroup);
@@ -290,18 +297,15 @@ void PruebaServidor()
     addr_size = sizeof their_addr;
 
     printf("Llego a esperar la conexión\n");
+
     new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &addr_size);
-    puts("ieie");
+
+    puts("Conectado...\n");
     // ready to communicate on socket descriptor new_fd!
     unsigned int size = 1024;
     char* buff = malloc( size);
 
-//    long long n;
-//    while( (n = recv(new_fd, buff,  size, 0))  > 0 ){
-//        printf("%lld\n", n);
-//        puts(buff);
-//    }
-	struct Registration regn ;
+	t_llamada regn;
 
     if(recvfrom(new_fd, buff, size, 0, (struct sockaddr*)&their_addr, &addr_size) < 0)
     {
@@ -309,20 +313,30 @@ void PruebaServidor()
     }
     else
     {
-           printf("Message received:%s\n", buff);
-           printf("Size :%d\n", strlen(buff));
-           memcpy(&regn, buff, sizeof(regn));
-           printf("PID:%d\n", regn.clientPid);
-           printf("MG:%s\n", regn.multicastGroup);
+		memcpy(&regn, buff, sizeof(regn));
+		printf("PID:%d\n", regn.clientPid);
+		printf("Cliente:%s\n", regn.cliente);
+		printf("Metodo:%s\n", regn.metodo);
+		printf("MG:%s\n", regn.message);
+		printf("Size:%d\n", sizeof(regn));
     }
 }
 
 int main(int argc, char *argv[])
 {
-	PruebaMMap();
+	//PruebaMMap();
 	//PruebaMongoDB();
 	//PruebaSocket();
 	//PruebaCliente();
-	//PruebaServidor();
+	PruebaServidor();
     return 0;
+}
+
+void ObtenerCurrentPath()
+{
+	char cwd[1024];
+	if (getcwd(cwd, sizeof(cwd)) != NULL)
+	   fprintf(stdout, "Current working dir: %s\n", cwd);
+	else
+	   perror("getcwd() error");
 }
