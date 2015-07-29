@@ -27,7 +27,7 @@ typedef struct {
 	pid_t clientPid;
 	char cliente[5];
 	char metodo[20];
-	char message[24];
+	char message[1024];
 } t_llamada;
 
 void PruebaMMap(){
@@ -274,6 +274,7 @@ void PruebaServidor()
     socklen_t addr_size;
     struct addrinfo hints, *res;
     int sockfd, new_fd;
+	t_llamada regn;
 
     // !! don't forget your error checking for these calls !!
 
@@ -302,10 +303,8 @@ void PruebaServidor()
 
     puts("Conectado...\n");
     // ready to communicate on socket descriptor new_fd!
-    unsigned int size = 1024;
-    char* buff = malloc( size);
-
-	t_llamada regn;
+    unsigned int size = 100000;
+    char* buff = malloc(400000);
 
     if(recvfrom(new_fd, buff, size, 0, (struct sockaddr*)&their_addr, &addr_size) < 0)
     {
@@ -320,6 +319,9 @@ void PruebaServidor()
 		printf("MG:%s\n", regn.message);
 		printf("Size:%d\n", sizeof(regn));
     }
+
+    close(sockfd);
+    close(new_fd);
 }
 
 int main(int argc, char *argv[])
