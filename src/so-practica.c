@@ -24,11 +24,43 @@ struct Registration
 };
 
 typedef struct {
+	int id;
+} t_identificador;
+
+typedef struct {
+	int id_proceso;
+	int ruta_mCod_long;
+	char* ruta_mCod;
+	int proxima_sentencia;
+	int quantum; // si es 0 es porque es FIFO
+} t_msg_de_planificador;
+
+typedef struct {
+	int id_proceso;
+	int motivo; // 0: error, 1: finalizo, 2: termino rafaga, 3: termino E/S
+	int ultima_sentencia;
+	int sleep;
+	int mensaje_long;
+	char* mensaje;
+} t_msg_a_planificador;
+
+typedef struct {
 	pid_t clientPid;
 	char cliente[5];
 	char metodo[20];
 	char message[1024];
 } t_llamada;
+
+int main(int argc, char *argv[])
+{
+	//PruebaMMap();
+	//PruebaMongoDB();
+	//PruebaSocket();
+	//PruebaCliente();
+	//PruebaServidor();
+	connect_to_planificador();
+    return 0;
+}
 
 void PruebaMMap(){
 
@@ -324,16 +356,6 @@ void PruebaServidor()
     close(new_fd);
 }
 
-int main(int argc, char *argv[])
-{
-	//PruebaMMap();
-	//PruebaMongoDB();
-	//PruebaSocket();
-	//PruebaCliente();
-	PruebaServidor();
-    return 0;
-}
-
 void ObtenerCurrentPath()
 {
 	char cwd[1024];
@@ -341,4 +363,93 @@ void ObtenerCurrentPath()
 	   fprintf(stdout, "Current working dir: %s\n", cwd);
 	else
 	   perror("getcwd() error");
+}
+
+void connect_to_planificador()
+{
+	printf("Inicia main de un socket\n");
+
+	struct addrinfo hints, *res;
+	int sockfd;
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+
+	printf("Busca info del socket\n");
+	//getaddrinfo("192.168.1.64", "7777", &hints, &res);
+	getaddrinfo("10.15.126.178", "7777", &hints, &res);
+
+	printf("Obtenida info del socket\n");
+
+	sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+
+	printf("Arme la estructura del socket\n");
+
+	connect(sockfd, res->ai_addr, res->ai_addrlen);
+	printf("Me conecte\n");
+
+	t_identificador identificador;
+	identificador.id = 1;
+
+	char* data;
+	data = malloc(sizeof(identificador));
+
+	memcpy(data, &identificador, sizeof(identificador));
+
+	printf("Size:%d\n", sizeof(data));
+	printf("Esto voy a mandar: %i\n", identificador.id);
+	printf("Llego a mandar el socket\n");
+
+	sendall(sockfd, data, sizeof(identificador));
+
+	while(true)
+	{
+		printf("Trato de leer lo que me envia el planificador..\n");
+
+    	t_msg_de_planificador msg_de_planificador;
+    	char* buff_mensaje_idproceso_planificador = malloc(sizeof(msg_de_planificador.id_proceso));
+
+    	if(recv(sockfd, buff_mensaje_idproceso_planificador, sizeof(msg_de_planificador.id_proceso), 0) > 0)
+    	{
+    		// Si es del tipo CPU lo acepto, si no descartamos el socket
+    		memcpy(&msg_de_planificador.id_proceso, buff_mensaje_idproceso_planificador, sizeof(msg_de_planificador.id_proceso));
+    		printf("Se recibio del planificador el proceso ID: %i\n", msg_de_planificador.id_proceso);
+
+    		char* buff_mensaje_ruta_mCod_long_planificador = malloc(sizeof(msg_de_planificador.ruta_mCod_long));
+
+        	if(recv(sockfd, buff_mensaje_ruta_mCod_long_planificador, sizeof(msg_de_planificador.ruta_mCod_long), 0) > 0)
+        	{
+        		// Si es del tipo CPU lo acepto, si no descartamos el socket
+        		memcpy(&msg_de_planificador.ruta_mCod_long, buff_mensaje_ruta_mCod_long_planificador, sizeof(msg_de_planificador.ruta_mCod_long));
+        		printf("Se recibio del planificador el largo de ruta: %i\n", msg_de_planificador.ruta_mCod_long);
+
+        		char* buff_mensaje_ruta_mCod_planificador = malloc(msg_de_planificador.ruta_mCod_long);
+
+            	if(recv(sockfd, buff_mensaje_ruta_mCod_planificador, msg_de_planificador.ruta_mCod_long, 0) > 0)
+            	{
+            		//strcpy(msg_de_planificador.ruta_mCod, buff_mensaje_ruta_mCod_planificador);
+            		//memcpy(&msg_de_planificador.ruta_mCod, buff_mensaje_ruta_mCod_planificador, msg_de_planificador.ruta_mCod_long);
+            		printf("Se recibio del planificador la ruta: %s\n", buff_mensaje_ruta_mCod_planificador);
+
+            		char* buff_mensaje_prox_sentencia_planificador = malloc(sizeof(msg_de_planificador.proxima_sentencia));
+
+                	if(recv(sockfd, buff_mensaje_prox_sentencia_planificador, sizeof(msg_de_planificador.proxima_sentencia), 0) > 0)
+                	{
+                		// Si es del tipo CPU lo acepto, si no descartamos el socket
+                		memcpy(&msg_de_planificador.proxima_sentencia, buff_mensaje_prox_sentencia_planificador, sizeof(msg_de_planificador.proxima_sentencia));
+                		printf("Se recibio del planificador el la proxima sentencia: %i\n", msg_de_planificador.proxima_sentencia);
+
+                		char* buff_mensaje_quantum_planificador = malloc(sizeof(msg_de_planificador.quantum));
+
+                    	if(recv(sockfd, buff_mensaje_quantum_planificador, sizeof(msg_de_planificador.quantum), 0) > 0)
+                    	{
+                    		// Si es del tipo CPU lo acepto, si no descartamos el socket
+                    		memcpy(&msg_de_planificador.quantum, buff_mensaje_quantum_planificador, sizeof(msg_de_planificador.quantum));
+                    		printf("Se recibio del planificador el quantum: %i\n", msg_de_planificador.quantum);
+                    	}
+                	}
+            	}
+        	}
+    	}
+	}
 }
