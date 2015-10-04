@@ -51,6 +51,17 @@ typedef struct {
 	char message[1024];
 } t_llamada;
 
+void enviar_pcb_a_planificador(int fd, int id_proceso);
+void PruebaMMap();
+void PruebaMongoDB();
+int PruebaSocket();
+void sendall( int descriptorSocket, const char* buffer, const unsigned int bytesPorEnviar);
+void PruebaCliente();
+void PruebaServidor();
+void ObtenerCurrentPath();
+void connect_to_planificador();
+void enviar_pcb_a_planificador(int fd, int id_proceso);
+
 int main(int argc, char *argv[])
 {
 	//PruebaMMap();
@@ -376,8 +387,8 @@ void connect_to_planificador()
 	hints.ai_socktype = SOCK_STREAM;
 
 	printf("Busca info del socket\n");
-	//getaddrinfo("192.168.1.64", "7777", &hints, &res);
-	getaddrinfo("10.15.126.178", "7777", &hints, &res);
+	getaddrinfo("192.168.1.67", "7777", &hints, &res);
+	//getaddrinfo("10.15.126.178", "7777", &hints, &res);
 
 	printf("Obtenida info del socket\n");
 
@@ -432,58 +443,59 @@ void connect_to_planificador()
 
 			if(recv(sockfd, buff_path, msg_de_planificador.ruta_mCod_long, 0) > 0)
 			{
-				//strcpy(msg_de_planificador.ruta_mCod, buff_mensaje_ruta_mCod_planificador);
+				msg_de_planificador.ruta_mCod = malloc(msg_de_planificador.ruta_mCod_long);
+				strcpy(msg_de_planificador.ruta_mCod, buff_path);
 				//memcpy(&mslg_de_planificador.ruta_mCod, buff_mensaje_ruta_mCod_planificador, msg_de_planificador.ruta_mCod_long);
 				printf("Se recibio del planificador la ruta: %s\n", (char *)buff_path);
 			}
 		}
-	}
 
-//		printf("Trato de leer lo que me envia el planificador..\n");
-//
-//    	t_msg_de_planificador msg_de_planificador;
-//    	char* buff_mensaje_idproceso_planificador = malloc(sizeof(msg_de_planificador.id_proceso));
-//
-//    	if(recv(sockfd, buff_mensaje_idproceso_planificador, sizeof(msg_de_planificador.id_proceso), 0) > 0)
-//    	{
-//    		// Si es del tipo CPU lo acepto, si no descartamos el socket
-//    		memcpy(&msg_de_planificador.id_proceso, buff_mensaje_idproceso_planificador, sizeof(msg_de_planificador.id_proceso));
-//    		printf("Se recibio del planificador el proceso ID: %i\n", msg_de_planificador.id_proceso);
-//
-//    		char* buff_mensaje_ruta_mCod_long_planificador = malloc(sizeof(msg_de_planificador.ruta_mCod_long));
-//
-//        	if(recv(sockfd, buff_mensaje_ruta_mCod_long_planificador, sizeof(msg_de_planificador.ruta_mCod_long), 0) > 0)
-//        	{
-//        		// Si es del tipo CPU lo acepto, si no descartamos el socket
-//        		memcpy(&msg_de_planificador.ruta_mCod_long, buff_mensaje_ruta_mCod_long_planificador, sizeof(msg_de_planificador.ruta_mCod_long));
-//        		printf("Se recibio del planificador el largo de ruta: %i\n", msg_de_planificador.ruta_mCod_long);
-//
-//        		char* buff_mensaje_ruta_mCod_planificador = malloc(msg_de_planificador.ruta_mCod_long);
-//
-//            	if(recv(sockfd, buff_mensaje_ruta_mCod_planificador, msg_de_planificador.ruta_mCod_long, 0) > 0)
-//            	{
-//            		//strcpy(msg_de_planificador.ruta_mCod, buff_mensaje_ruta_mCod_planificador);
-//            		//memcpy(&mslg_de_planificador.ruta_mCod, buff_mensaje_ruta_mCod_planificador, msg_de_planificador.ruta_mCod_long);
-//            		printf("Se recibio del planificador la ruta: %s\n", buff_mensaje_ruta_mCod_planificador);
-//
-//            		char* buff_mensaje_prox_sentencia_planificador = malloc(sizeof(msg_de_planificador.proxima_sentencia));
-//
-//                	if(recv(sockfd, buff_mensaje_prox_sentencia_planificador, sizeof(msg_de_planificador.proxima_sentencia), 0) > 0)
-//                	{
-//                		// Si es del tipo CPU lo acepto, si no descartamos el socket
-//                		memcpy(&msg_de_planificador.proxima_sentencia, buff_mensaje_prox_sentencia_planificador, sizeof(msg_de_planificador.proxima_sentencia));
-//                		printf("Se recibio del planificador el la proxima sentencia: %i\n", msg_de_planificador.proxima_sentencia);
-//
-//                		char* buff_mensaje_quantum_planificador = malloc(sizeof(msg_de_planificador.quantum));
-//
-//                    	if(recv(sockfd, buff_mensaje_quantum_planificador, sizeof(msg_de_planificador.quantum), 0) > 0)
-//                    	{
-//                    		// Si es del tipo CPU lo acepto, si no descartamos el socket
-//                    		memcpy(&msg_de_planificador.quantum, buff_mensaje_quantum_planificador, sizeof(msg_de_planificador.quantum));
-//                    		printf("Se recibio del planificador el quantum: %i\n", msg_de_planificador.quantum);
-//                    	}
-//                	}
-//            	}
-//        	}
-//    	}
+		// Trato de enviarle un proceso
+		enviar_pcb_a_planificador(sockfd, msg_de_planificador.id_proceso);
+	}
+}
+
+void enviar_pcb_a_planificador(int fd, int id_proceso)
+{
+//	typedef struct {
+//		int id_proceso;
+//		int ultima_sentencia;
+//		int motivo; // 0: error, 1: finalizo, 2: termino rafaga, 3: termino E/S, 4: bloqueado
+//		int sleep;
+//		int mensaje_long;
+//		char* mensaje;
+//	} t_msg_a_planificador;
+
+	printf("Trato de enviar el PCB al planificador, fd: %i, mProc ID: %i", fd, id_proceso);
+
+	t_msg_a_planificador* msg_a_enviar = malloc(sizeof(t_msg_a_planificador));
+	msg_a_enviar->id_proceso = id_proceso;
+	msg_a_enviar->ultima_sentencia = 3;
+	msg_a_enviar->motivo = 2;
+	msg_a_enviar->sleep = 2;
+	msg_a_enviar->mensaje = "Prueba de mensaje desde la CPU";
+	msg_a_enviar->mensaje_long = strlen(msg_a_enviar->mensaje) + 1;
+
+	int length = sizeof(int) + sizeof(int) + sizeof(int) + sizeof(int) + sizeof(int) + msg_a_enviar->mensaje_long;
+
+	printf("[CPU] Envio el nuevo pcb con ID: %i\n", msg_a_enviar->id_proceso);
+	printf("[CPU] Envio el nuevo pcb con ultima_sentencia: %i\n", msg_a_enviar->ultima_sentencia);
+	printf("[CPU] Envio el nuevo pcb con motivo: %i\n", msg_a_enviar->motivo);
+	printf("[CPU] Envio el nuevo pcb con sleep: %i\n", msg_a_enviar->sleep);
+	printf("[CPU] Envio el nuevo pcb con mensaje_long: %i\n", msg_a_enviar->mensaje_long);
+	printf("[CPU] Envio el nuevo pcb con mensaje: %s\n", msg_a_enviar->mensaje);
+	printf("[CPU] El tamaño de lo que voy a enviar es: %i\n", length);
+
+	void* buffer = malloc(length);
+	memcpy(buffer, &(msg_a_enviar->id_proceso), sizeof(int));
+	memcpy(buffer + 4, &(msg_a_enviar->ultima_sentencia), sizeof(int));
+	memcpy(buffer + 8, &(msg_a_enviar->motivo), sizeof(int));
+	memcpy(buffer + 12, &(msg_a_enviar->sleep), sizeof(int));
+	memcpy(buffer + 16, &(msg_a_enviar->mensaje_long), sizeof(int));
+	strcpy(buffer + 20, msg_a_enviar->mensaje);
+
+	sendall(fd, buffer, length);
+
+	free(buffer);
+	free(msg_a_enviar);
 }
