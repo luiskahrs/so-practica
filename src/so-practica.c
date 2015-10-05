@@ -450,6 +450,8 @@ void connect_to_planificador()
 			}
 		}
 
+		sleep(120);
+
 		// Trato de enviarle un proceso
 		enviar_pcb_a_planificador(sockfd, msg_de_planificador.id_proceso);
 	}
