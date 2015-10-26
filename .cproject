@@ -40,7 +40,7 @@
 									<listOptionValue builtIn="false" value="mongoc-1.0"/>
 									<listOptionValue builtIn="false" value="bson-1.0"/>
 								</option>
-								<option id="gnu.c.link.option.paths.578511583" name="Library search path (-L)" superClass="gnu.c.link.option.paths" valueType="libPaths"/>
+								<option id="gnu.c.link.option.paths.578511583" name="Library search path (-L)" superClass="gnu.c.link.option.paths"/>
 								<option id="gnu.c.link.option.ldflags.1926967513" name="Linker flags" superClass="gnu.c.link.option.ldflags" value="" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.1525008571" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -54,6 +54,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="example-memory"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
@@ -108,6 +109,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="example-memory"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
